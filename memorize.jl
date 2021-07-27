@@ -10,7 +10,7 @@ end
 # end
 
 struct Errata
-	index::UInt
+	index::Int
 	answer::String
 	errata::String
 end
@@ -26,14 +26,14 @@ function match_two_sentences(sentence1::String, sentence2::String)
 		if x == y
 			score = score + 1
 		else
-			erratum.append(Errata(i, x, y))
+			push!(erratum, Errata(i, x, y))
 		end
 	end
 
 	return score / length(array1) * 100, erratum
 end
 
-function do_test_once(sentence1::String, sentence2::String, total_score::Vector{T}) where T <: Number
+function do_test_once(sentence1::String, sentence2::String)
 	score, erratum = match_two_sentences(sentence1, sentence2)
 
 	if score == 100
@@ -42,7 +42,27 @@ function do_test_once(sentence1::String, sentence2::String, total_score::Vector{
 		println("score: $score, errata: $erratum")
 	end
 
-	push!(total_score, score)
+	return score
+end
+
+function do_test(path::String, range::UnitRange{Int64})
+	df = Feather.read(path)
+	total_score = Vector{Float64}(undef, length(range))
+
+	for i in range
+		ans = df[i, :Sentence]
+		mean = df[i, :Meaning]
+		println(mean)
+		println("")
+		print("> ")
+		user_ans = readline()
+		score = do_test_once(user_ans, ans)
+		total_score[i] = score
+		println("=========================================================")
+	end
+
+	println("score results: ", total_score)
+	println("total score: ", sum(total_score) / length(total_score))
 end
 	
 
@@ -52,18 +72,11 @@ function main()
 
 	#df = readnc("data/sentence.nc")
 	# Feather.write("data/sentence.feather", df)
+	println("=========================================================")
+	println("||                     Memorize Test                   ||")
+	println("=========================================================")
 
-	df = Feather.read("data/sentence.feather")
-	
-	sentence1 = df[1, :Sentence]
-	mean1 = df[1, :Meaning]
-	println(mean1)
-	sentence2 = readline()
-
-	score, erratum = match_two_sentences(sentence1, sentence2)
-
-	println(score)
-	println(erratum)
+	do_test("data/sentence.feather", 1:2)
 end
 
 main()
