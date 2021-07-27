@@ -1,13 +1,13 @@
-using DataFrames, NCDataFrame, CSV
+using DataFrames, NCDataFrame, CSV, Feather
 
 function load_csv(path::String)
 	df = CSV.read(path, DataFrame)
 	df
 end
 
-function write_nc(df::DataFrame, path::String)
-	writenc(df, path)
-end
+# function write_nc(df::DataFrame, path::String)
+# 	writenc(df, path)
+# end
 
 struct Errata
 	index::UInt
@@ -50,7 +50,10 @@ function main()
 	# df = load_csv("data/sentence.csv")
 	# write_nc(df, "data/sentence.nc")
 
-	df = readnc("data/sentence.nc")
+	#df = readnc("data/sentence.nc")
+	# Feather.write("data/sentence.feather", df)
+
+	df = Feather.read("data/sentence.feather")
 	
 	sentence1 = df[1, :Sentence]
 	mean1 = df[1, :Meaning]
